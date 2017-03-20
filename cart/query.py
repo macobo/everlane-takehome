@@ -36,15 +36,15 @@ def delete(connection, table, ids):
     query = query.returning(*table.columns)
     return connection.execute(query).fetchone()
 
-def upsert(connection, table, ids, update):
+def upsert(connection, table, id_keys, update):
     """
     Upserts a row to `table` with the given primary key(s).
     """
-    values = dict(ids)
+    values = dict(id_keys)
     values.update(update)
     upsert_query = insert(table) \
         .values(**values) \
-        .on_conflict_do_update(index_elements=ids.keys(), set_=update)
+        .on_conflict_do_update(index_elements=id_keys.keys(), set_=update)
 
     return connection.execute(upsert_query)
 
@@ -55,7 +55,7 @@ def update_cart(connection, id, **values):
         .where(schema.cart.c.id == id)
     connection.execute(listing_update)
 
-def get_cart_contents(connection, cart_ids):
+def _get_cart_contents(connection, cart_ids):
     """
     For each `cart` in cart_ids, this returns a Dictionary from id -> List(product_row)
     """
@@ -74,7 +74,8 @@ def get_cart_contents(connection, cart_ids):
         .order_by(schema.products.c.title)
     products = connection.execute(products_query).fetchall()
     # Group results by cart id
-    return {cart_id: list(rows) for cart_id, rows in groupby(products, key=lambda r: r.cart_id)}
+    product_groups = groupby(products, key=lambda p: p.cart_id)
+    return {cart_id: list(products) for cart_id, products in product_groups}
 
 def summarize_cart(cart, products):
     total_price = sum(p.price * p.amount for p in products)
@@ -92,7 +93,7 @@ def cart_info(connection, cart_ids):
         .where(schema.cart.c.id.in_(cart_ids)) \
         .with_for_update() # lock results to avoid someone closing the cart in a race.
     carts = {cart.id: cart for cart in connection.execute(cart_query)}
-    contents = get_cart_contents(connection, cart_ids)
+    contents = _get_cart_contents(connection, cart_ids)
 
     result = []
     for cart_id in cart_ids:

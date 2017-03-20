@@ -9,9 +9,12 @@ class CartState:
 
     @staticmethod
     def to_string(state):
-        if state == CartState.ACTIVE: return 'active'
-        if state == CartState.COMPLETE: return 'complete'
-        if state == CartState.ABORTED: return 'aborted'
+        if state == CartState.ACTIVE:
+            return 'active'
+        if state == CartState.COMPLETE:
+            return 'complete'
+        if state == CartState.ABORTED:
+            return 'aborted'
         raise ValueError("Unknown CartState: {}".format(state))
 
 products = Table('products', metadata,
@@ -31,6 +34,6 @@ cart = Table('cart', metadata,
 cart_contents = Table('cart_contents', metadata,
     Column('cart_id', Integer, ForeignKey('cart.id'), nullable=False),
     Column('product_id', Integer, ForeignKey('products.id'), nullable=False),
-    Column('amount', Integer, CheckConstraint('amount>=0'), nullable=False),
+    Column('amount', Integer, CheckConstraint('amount>0'), nullable=False),
     UniqueConstraint('cart_id', 'product_id', name='c_cart_contents_uniq')
 )
