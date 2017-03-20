@@ -196,5 +196,3 @@ $ ./cart.py close_cart --cart 2 --abort
   }
 }
 ```
-
-This cart can then not be used later on.
