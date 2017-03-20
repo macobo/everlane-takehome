@@ -28,21 +28,18 @@ def test_database_setup():
 def test_create_cart_command():
     for i in range(1, 4):
         json = invoke(['create_cart'])
-        assert json['cart'] == {
-            'id': i,
-            'state': 'active'
-        }
+        assert json['cart']['id'] == i
+        assert json['cart']['state'] == 'active'
 
 def test_show_empty_cart():
     json = invoke(['show_cart', '--cart=1'])
     assert len(json['carts']) == 1
 
-    assert json['carts'][0] == {
-        'id': 1,
-        'state': 'active',
-        'total_price': 0,
-        'products': []
-    }
+    cart = json['carts'][0]
+    assert cart['id'] == 1
+    assert cart['state'] == 'active'
+    assert cart['total_price'] == 0
+    assert cart['products'] == []
 
 def test_show_nonexisting_cart_fails():
     json = invoke(['show_cart', '--cart=123'], expect_success=False)
@@ -74,31 +71,28 @@ def test_add_too_much_of_product_to_cart():
 
 def test_show_cart_after_add():
     json = invoke(['show_cart', '--cart=1'])
-    assert json['carts'][0] == {
-        'id': 1,
-        'state': 'active',
-        'total_price': 2.6,
-        'products': [{
-            'product_id': 2,
-            'title': 'second_product',
-            'price': 1.3,
-            'amount': 2
-        }]
-    }
+    cart = json['carts'][0]
+    assert cart['id'] == 1
+    assert cart['state'] == 'active'
+    assert cart['total_price'] == 2.6
+    assert cart['products'] == [{
+        'product_id': 2,
+        'title': 'second_product',
+        'price': 1.3,
+        'amount': 2
+    }]
 
 def test_close_cart():
-    json = invoke(['close_cart', '--cart=1'])
-    assert json['cart'] == {
-        'id': 1,
-        'state': 'complete',
-        'total_price': 2.6,
-        'products': [{
-            'product_id': 2,
-            'title': 'second_product',
-            'price': 1.3,
-            'amount': 2
-        }]
-    }
+    cart = invoke(['close_cart', '--cart=1'])['cart']
+    assert cart['id'] == 1
+    assert cart['state'] == 'complete'
+    assert cart['total_price'] == 2.6
+    assert cart['products'] == [{
+        'product_id': 2,
+        'title': 'second_product',
+        'price': 1.3,
+        'amount': 2
+    }]
 
 def test_after_close_available_inventory_decreased():
     with cli.engine.begin() as connection:
@@ -114,54 +108,47 @@ def test_cannot_close_twice():
     assert json['error'] == 'Cannot close an inactive cart.'
 
 def test_abort_cart():
-    json = invoke(['close_cart', '--cart=2', '--abort'])
-    assert json['cart'] == {
-        'id': 2,
-        'state': 'aborted',
-        'total_price': 13,
-        'products': [{
-            'product_id': 2,
-            'title': 'second_product',
-            'price': 1.3,
-            'amount': 10
-        }]
-    }
+    cart = invoke(['close_cart', '--cart=2', '--abort'])['cart']
+    assert cart['id'] == 2
+    assert cart['state'] == 'aborted'
+    assert cart['total_price'] == 13
+    assert cart['products'] == [{
+        'product_id': 2,
+        'title': 'second_product',
+        'price': 1.3,
+        'amount': 10
+    }]
 
 def test_update_cart_update_product_amount():
     invoke(['update_cart', '--cart=3', '--product=2', '--amount=3'])
-    json = invoke(['show_cart', '--cart=3'])
-    assert json['carts'][0] == {
-        'id': 3,
-        'state': 'active',
-        'total_price': 3.9,
-        'products': [{
-            'product_id': 2,
-            'title': 'second_product',
-            'price': 1.3,
-            'amount': 3
-        }]
-    }
+    cart = invoke(['show_cart', '--cart=3'])['carts'][0]
+    assert cart['id'] == 3
+    assert cart['state'] == 'active'
+    assert cart['total_price'] == 3.9
+    assert cart['products'] == [{
+        'product_id': 2,
+        'title': 'second_product',
+        'price': 1.3,
+        'amount': 3
+    }]
 
     invoke(['update_cart', '--cart=3', '--product=2', '--amount=4'])
-    json = invoke(['show_cart', '--cart=3'])
-    assert json['carts'][0] == {
-        'id': 3,
-        'state': 'active',
-        'total_price': 5.2,
-        'products': [{
-            'product_id': 2,
-            'title': 'second_product',
-            'price': 1.3,
-            'amount': 4
-        }]
-    }
+    cart = invoke(['show_cart', '--cart=3'])['carts'][0]
+    cart = invoke(['show_cart', '--cart=3'])['carts'][0]
+    assert cart['id'] == 3
+    assert cart['state'] == 'active'
+    assert cart['total_price'] == 5.2
+    assert cart['products'] == [{
+        'product_id': 2,
+        'title': 'second_product',
+        'price': 1.3,
+        'amount': 4
+    }]
 
 def test_remove_from_cart():
     invoke(['update_cart', '--cart=3', '--product=2', '--amount=0'])
-    json = invoke(['show_cart', '--cart=3'])
-    assert json['carts'][0] == {
-        'id': 3,
-        'state': 'active',
-        'total_price': 0,
-        'products': []
-    }
+    cart = invoke(['show_cart', '--cart=3'])['carts'][0]
+    assert cart['id'] == 3
+    assert cart['state'] == 'active'
+    assert cart['total_price'] == 0
+    assert cart['products'] == []

@@ -81,6 +81,7 @@ def summarize_cart(cart, products):
     total_price = sum(p.price * p.amount for p in products)
     return {
         'id': cart.id,
+        'created_at': str(cart.created_at),
         'state': schema.CartState.to_string(cart.state),
         'products': utils.proxy_to_dict(products, omit_keys={'cart_id'}),
         'total_price': total_price

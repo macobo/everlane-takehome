@@ -38,7 +38,8 @@ def create_cart():
     return {
         'cart': {
             'id': cart.id,
-            'state': schema.CartState.to_string(cart.state)
+            'state': schema.CartState.to_string(cart.state),
+            'created_at': str(cart.created_at)
         }
     }
 

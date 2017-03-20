@@ -1,4 +1,5 @@
-from sqlalchemy import Table, Column, DateTime, Enum, Integer, String, MetaData, Numeric, ForeignKey, UniqueConstraint, CheckConstraint
+from sqlalchemy import Table, Column, DateTime, Integer, String, \
+    MetaData, Numeric, ForeignKey, UniqueConstraint, CheckConstraint, func
 
 metadata = MetaData()
 
@@ -27,8 +28,7 @@ products = Table('products', metadata,
 cart = Table('cart', metadata,
     Column('id', Integer, primary_key=True),
     Column('state', Integer),
-    # Column('started_at', DateTime, nullable=False),
-    # Column('updated_at', DateTime, nullable=False)
+    Column('created_at', DateTime, nullable=False, default=func.now())
 )
 
 cart_contents = Table('cart_contents', metadata,
