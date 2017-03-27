@@ -29,6 +29,13 @@ def json_output(command):
 def proxy_to_dict(result_proxy, omit_keys=frozenset()):
     return [{key: value for (key, value) in row.items() if key not in omit_keys} for row in result_proxy]
 
+def max_length(maxlen):
+    def validator(ctx, param, value):
+        if len(value) > maxlen:
+            raise click.BadParameter('Should be at most {} characters'.format(maxlen))
+        return value
+    return validator
+
 def option(flagname, helptext, **kw):
     "Wrapper for `click.option` for auto-prompting."
     if 'required' not in kw:

@@ -44,7 +44,7 @@ def create_cart():
     }
 
 @cli.command()
-@utils.option('--title', 'Title of the product')
+@utils.option('--title', 'Title of the product', callback=utils.max_length(255))
 @utils.option('--price', 'Price of the product', type=float)
 @utils.option('--available_inventory', 'How many of the product is available', type=click.IntRange(min=0))
 @json_output
